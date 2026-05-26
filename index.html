@@ -3,113 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鞋鋪超級無敵盤點系統 Pro (完美修復版)</title>
+    <title>RUN - 智能流動盤點系統 Pro</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
-            --primary: #2c3e50;
-            --accent: #e67e22;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --bg: #f5f6fa;
-            --dark-gray: #7f8c8d;
+            --bg-dark: #0f172a;       /* 深邃黑藍底色 */
+            --card-dark: #1e293b;     /* 玻璃感字卡背景 */
+            --gold: #f59e0b;          /* 輕奢琥珀金 */
+            --gold-hover: #d97706;
+            --success: #10b981;       /* 寶石綠 (加掣) */
+            --danger: #ef4444;        /* 霓虹紅 (減掣/垃圾桶) */
+            --text-main: #f8fafc;     /* 亮白主文字 */
+            --text-muted: #94a3b8;    /* 高級灰副文字 */
+            --border-glow: #334155;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            background-color: var(--bg);
-            color: #333;
-            padding-bottom: 100px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-bottom: 120px;
+            -webkit-font-smoothing: antialiased;
         }
-        h1, h2, h3, h4 { color: var(--primary); margin-top: 0; margin-bottom: 10px; }
         
-        /* 導航列 */
+        /* 鋪頭專屬豪華 Logo 頂部 */
+        .store-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 16px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .logo-box {
+            border: 3px solid var(--text-main);
+            border-radius: 24px;
+            padding: 8px 20px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 32px;
+            letter-spacing: 4px;
+            color: var(--text-main);
+            position: relative;
+            box-shadow: 0 0 15px rgba(248, 250, 252, 0.1);
+        }
+        .logo-box span {
+            display: block;
+            transform: skewX(-5deg);
+        }
+        .logo-subtext {
+            font-size: 11px;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+
+        /* 導航及雲端卡片 */
+        .cloud-banner {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
         .nav-bar {
-            background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold;
-            display: flex; align-items: center; gap: 5px; font-size: 15px;
+            background: var(--card-dark);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-glow);
+            font-weight: bold;
+            font-size: 15px;
+            color: var(--gold);
         }
-        .nav-link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+        .nav-link { color: var(--text-main); cursor: pointer; text-decoration: underline; }
         
-        /* 卡片與列表 */
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        
+        /* 智能搜尋及掃描區 */
+        .search-container { display: flex; gap: 10px; margin-bottom: 18px; }
+        .search-input {
+            flex: 1; padding: 14px; background: #0f172a; 
+            border: 2px solid var(--border-glow); border-radius: 10px; 
+            font-size: 15px; color: var(--text-main); box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        .search-input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(245,158,11,0.2); }
+        .btn-scan-main {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
+            color: #0f172a; border: none; border-radius: 10px; padding: 0 20px;
+            font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 卡片與列表豪華優化 */
+        .card {
+            background: var(--card-dark); padding: 18px; border-radius: 16px;
+            border: 1px solid var(--border-glow); box-shadow: 0 8px 16px rgba(0,0,0,0.2); margin-bottom: 15px;
+        }
         .list-item {
-            background: white; padding: 16px; border-radius: 10px; margin-bottom: 12px;
-            border: 1px solid #e2e8f0; font-size: 16px; font-weight: bold;
+            background: var(--card-dark); padding: 18px; border-radius: 12px; margin-bottom: 12px;
+            border: 1px solid var(--border-glow); font-size: 16px; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.2s, background 0.2s;
         }
-        .list-content-area {
-            flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
-        .list-item:active .list-content-area { opacity: 0.6; }
-        .arrow { color: #a0aec0; padding-right: 10px; }
-        
-        /* 刪除按鈕 */
-        .btn-delete-item {
-            background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; padding: 10px; display: flex; align-items: center; justify-content: center; z-index: 10;
-        }
-        .btn-delete-item:active { transform: scale(1.2); }
-        
-        /* 搜尋與掃描核心區 */
-        .search-container { display: flex; gap: 8px; margin-bottom: 15px; }
-        .search-input { flex: 1; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-        .btn-scan-main { background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 15px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 80px; }
+        .list-item:active { transform: scale(0.98); background: #334155; }
+        .list-content-area { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .arrow { color: var(--gold); font-size: 18px; padding-right: 5px; }
+        .btn-delete-item { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; padding: 10px; }
 
-        /* 相機掃描彈窗面版 */
-        #scanner-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; flex-direction: column; justify-content: center; padding: 20px; }
-        #reader { background: white; border-radius: 12px; overflow: hidden; }
-        .btn-close-scanner { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 16px; font-weight: bold;}
-
-        /* 尺碼行樣式 */
+        /* 尺碼加減列優化 */
         .size-grid { display: flex; flex-direction: column; }
-        .size-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
-        .size-label { font-size: 16px; font-weight: bold; width: 60px; }
-        .counter-group { display: flex; align-items: center; gap: 5px; }
-        .btn-counter { width: 44px; height: 44px; font-size: 22px; background: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; }
+        .size-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .size-label { font-size: 17px; font-weight: bold; color: var(--text-main); width: 65px; }
+        .counter-group { display: flex; align-items: center; gap: 8px; }
+        
+        .btn-counter {
+            width: 46px; height: 46px; font-size: 24px; font-weight: 500;
+            background: #334155; border: none; border-radius: 10px; cursor: pointer;
+            transition: background 0.1s;
+        }
         .btn-minus { color: var(--danger); }
+        .btn-minus:active { background: rgba(239,68,68,0.2); }
         .btn-plus { color: var(--success); }
-        .count-display { width: 45px; text-align: center; font-size: 18px; font-weight: bold; border: none; background: transparent; }
-        .btn-bind-barcode { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 8px; font-size: 11px; cursor: pointer; color: #475569; }
-        .btn-bind-barcode.bound { background: #dcfce7; border-color: #86efac; color: #166534; font-weight: bold; }
+        .btn-plus:active { background: rgba(16,185,129,0.2); }
         
-        /* 輸入框組 */
+        .count-display { width: 45px; text-align: center; font-size: 20px; font-weight: bold; border: none; background: transparent; color: var(--text-main); }
+        .btn-bind-barcode { background: #334155; border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer; color: var(--text-muted); }
+        .btn-bind-barcode.bound { background: rgba(16,185,129,0.15); border: 1px solid var(--success); color: var(--success); font-weight: bold; }
+        
+        /* 增加與手動後台區 */
         .input-group { display: flex; gap: 10px; margin-top: 10px; }
-        input[type="text"], input[type="number"] { flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; }
-        .btn-add { background: var(--primary); color: white; padding: 12px 15px; border-radius: 8px; border: none; font-weight: bold;}
-        .admin-box { background: #e8f4f8; border: 2px dashed #3498db; margin-top: 25px;}
+        input[type="text"], input[type="number"] {
+            flex: 1; padding: 14px; background: #0f172a; border: 1px solid var(--border-glow); 
+            border-radius: 10px; font-size: 15px; color: var(--text-main);
+        }
+        .btn-add { background: linear-gradient(135deg, #475569 0%, #1e293b 100%); color: var(--text-main); border: 1px solid var(--border-glow); padding: 14px 18px; border-radius: 10px; font-weight: bold; }
+        .admin-box { background: rgba(30, 41, 59, 0.5); border: 1px dashed var(--gold); margin-top: 30px;}
 
-        /* 雲端與通知橫幅 */
-        .cloud-banner { background: #e3f2fd; border: 1px solid #90caf9; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
-        .scan-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; text-align: center; width: 80%; }
+        /* 相機彈窗 */
+        #scanner-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; justify-content: center; padding: 20px; }
+        #reader { background: white; border-radius: 16px; overflow: hidden; border: 2px solid var(--gold); }
+        .btn-close-scanner { background: var(--danger); color: white; border: none; padding: 14px; border-radius: 10px; margin-top: 20px; font-size: 16px; font-weight: bold;}
 
-        /* 底部操作欄 */
-        .bottom-actions { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; gap: 8px; z-index: 999; }
-        .btn-footer { flex: 1; padding: 12px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; color: white;}
-        .btn-green { background-color: var(--success); }
-        .btn-blue { background-color: #3498db; }
-        .btn-red { background-color: var(--danger); }
+        /* 浮動通知 */
+        .scan-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); color: white; padding: 14px 28px; border-radius: 30px; font-weight: bold; z-index: 1100; box-shadow: 0 10px 20px rgba(0,0,0,0.3); display: none; text-align: center; width: 85%; font-size: 15px; }
+
+        /* 底部操作固定欄 */
+        .bottom-actions {
+            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95);
+            padding: 16px 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); display: flex; gap: 10px; z-index: 999;
+            backdrop-filter: blur(10px); border-top: 1px solid var(--border-glow);
+        }
+        .btn-footer { flex: 1; padding: 14px; font-size: 15px; font-weight: bold; border: none; border-radius: 12px; color: #0f172a; }
+        .btn-blue { background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); color: white; }
+        .btn-green { background: linear-gradient(135deg, #34d399 0%, #059669 100%); color: white; }
+        .btn-red { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
         
-        .search-result-title { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        .search-result-title { font-size: 15px; color: var(--gold); font-weight: bold; margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="scan-toast" id="scanToast"></div>
+    <div class="store-header">
+        <div class="logo-box">
+            <span>RUN</span>
+        </div>
+        <div class="logo-subtext">more you can</div>
+    </div>
 
     <div class="cloud-banner">
-        <strong>🌐 Google Sheets 雲端連線：</strong>
+        <strong style="color:var(--gold)">🌐 Google Sheets 雲端連線後台：</strong>
         <div class="input-group">
-            <input type="text" id="scriptUrlInput" placeholder="貼上 Google App Script 網址">
-            <button class="btn-add" style="padding: 10px;" onclick="saveScriptUrl()">儲存</button>
+            <input type="text" id="scriptUrlInput" placeholder="請在此貼上 Google App Script 網址">
+            <button class="btn-add" style="background:var(--gold); color:#0f172a; border:none;" onclick="saveScriptUrl()">儲存</button>
         </div>
     </div>
 
     <div class="search-container" id="globalSearchArea">
-        <input type="text" class="search-input" id="globalSearchInput" placeholder="🔍 搜尋鞋款 (如: Blush)..." oninput="handleSearch(this.value)">
-        <button class="btn-scan-main" onclick="openScanner('global')">📷 掃碼</button>
+        <input type="text" class="search-input" id="globalSearchInput" placeholder="🔍 搜尋鞋款/顏色 (如: Blush)..." oninput="handleSearch(this.value)">
+        <button class="btn-scan-main" onclick="openScanner('global')">📷 掃碼點貨</button>
     </div>
 
     <div class="nav-bar" id="breadcrumbs">
@@ -123,10 +202,12 @@
         <button class="btn-close-scanner" onclick="closeScanner()">❌ 關閉相機</button>
     </div>
 
+    <div class="scan-toast" id="scanToast"></div>
+
     <div class="bottom-actions">
         <button class="btn-footer btn-blue" onclick="uploadToCloud()">☁️ 傳上雲端</button>
         <button class="btn-footer btn-green" onclick="exportCSV()">📥 匯出 Excel</button>
-        <button class="btn-footer btn-red" onclick="resetCounts()">🗑️ 清空數量</button>
+        <button class="btn-footer btn-red" onclick="resetCounts()">🗑️ 數量歸零</button>
     </div>
 
     <script>
@@ -135,6 +216,7 @@
             "m7", "m7.5", "m8", "m8.5", "m9", "m9.5", "m10", "m10.5", "m11", "m11.5", "m12"
         ];
 
+        // 預設內建你張相嘅 10 款 OOFOS 鞋
         const INITIAL_DATA = {
             "OOFOS": {
                 "OOaHH": ["Blush", "Olive", "Dune", "Black"],
@@ -161,8 +243,7 @@
         let bindTargetKey = ''; 
 
         window.onload = function() {
-            // 使用全新儲存 Key 確保刷新
-            let saved = localStorage.getItem('shoe_v8_batch_delete');
+            let saved = localStorage.getItem('shoe_v9_luxury_data');
             if (saved) {
                 let parsed = JSON.parse(saved);
                 appData.counts = parsed.counts || {};
@@ -180,7 +261,7 @@
         };
 
         function saveToStorage() {
-            localStorage.setItem('shoe_v8_batch_delete', JSON.stringify(appData));
+            localStorage.setItem('shoe_v9_luxury_data', JSON.stringify(appData));
         }
 
         function saveScriptUrl() {
@@ -193,7 +274,7 @@
         function showToast(msg, isSuccess=true) {
             const toast = document.getElementById('scanToast');
             toast.innerText = msg;
-            toast.style.background = isSuccess ? "#2ecc71" : "#e74c3c";
+            toast.style.background = isSuccess ? "rgba(16,185,129,0.95)" : "rgba(239,68,68,0.95)";
             toast.style.display = "block";
             setTimeout(() => { toast.style.display = "none"; }, 3500);
         }
@@ -210,7 +291,7 @@
             const container = document.getElementById('mainContainer');
             const breadcrumbs = document.getElementById('breadcrumbs');
             breadcrumbs.innerHTML = `<span class="nav-link" onclick="goToView('brand')">🏠 取消搜尋並返回首頁</span>`;
-            container.innerHTML = `<div class="search-result-title">🔎 搜尋結果 (點擊直達點貨)：</div>`;
+            container.innerHTML = `<div class="search-result-title">🔎 搜尋結果如下：</div>`;
 
             let hasResult = false;
 
@@ -223,7 +304,7 @@
                             container.innerHTML += `
                                 <div class="list-item">
                                     <div class="list-content-area" onclick="jumpToSizeView('${b}', '${m}', '${c}')">
-                                        <span>👟 ${b} - ${m} (<span style="color:var(--accent);">${c}</span>)</span>
+                                        <span>👟 ${b} - ${m} (<span style="color:var(--gold);">${c}</span>)</span>
                                         <span class="arrow">➔</span>
                                     </div>
                                 </div>`;
@@ -233,14 +314,12 @@
             });
 
             if (!hasResult) {
-                container.innerHTML = `<div style="text-align:center; color:gray; padding:30px;">❌ 搵唔到鞋款。</div>`;
+                container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px;">❌ 搵唔到相符鞋款。</div>`;
             }
         }
 
         function jumpToSizeView(b, m, c) {
-            selectedBrand = b;
-            selectedModel = m;
-            selectedColor = c;
+            selectedBrand = b; selectedModel = m; selectedColor = c;
             document.getElementById('globalSearchInput').value = ''; 
             goToView('size');
         }
@@ -258,7 +337,7 @@
 
             if (currentView === 'brand') {
                 breadcrumbs.innerHTML = `🏠 品牌首頁`;
-                container.innerHTML = `<h2 style="color:#7f8c8d; font-size:15px; margin-bottom:15px;">👇 點擊品牌，或在下方新增：</h2>`;
+                container.innerHTML = `<h2 style="color:var(--text-muted); font-size:14px; margin-bottom:15px;">👇 點擊品牌進入：</h2>`;
                 
                 Object.keys(appData.structure).forEach(brand => {
                     container.innerHTML += `
@@ -267,26 +346,26 @@
                                 <span>🏢 品牌：${brand}</span>
                                 <span class="arrow">➔</span>
                             </div>
-                            <button class="btn-delete-item" onclick="deleteItem('brand', '${brand}')" title="刪除整間品牌">🗑️</button>
+                            <button class="btn-delete-item" onclick="deleteItem('brand', '${brand}')">🗑️</button>
                         </div>`;
                 });
 
-                // 批量新增介面優化
+                // 批量新增豪華區
                 container.innerHTML += `
                     <div class="card admin-box">
-                        <h3 style="font-size:16px; color:#2980b9;">➕ 快捷加入鞋款 (支援批量顏色)</h3>
-                        <p style="font-size:12px; color:#7f8c8d; margin-top:0;">💡 提示：多個顏色可以用逗號「,」或斜線「/」隔開，系統會自動拆開！</p>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <input type="text" id="newBrand" placeholder="1. 品牌 (例如: OOFOS 或 Nike)">
+                        <h3 style="font-size:16px; color:var(--gold);">➕ 手動批量追加鞋款/顏色</h3>
+                        <p style="font-size:12px; color:var(--text-muted); margin-top:0;">💡 顏色可同時輸入多個，用逗號「,」或斜線「/」分開即可自動拆開。</p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <input type="text" id="newBrand" placeholder="1. 品牌 (例如: OOFOS)">
                             <input type="text" id="newModel" placeholder="2. 款式 (例如: OOaHH)">
-                            <input type="text" id="newColor" placeholder="3. 顏色 (例如: 黑色,白色,軍綠色)">
-                            <button class="btn-add" style="background:#3498db; padding:15px; font-size:16px;" onclick="quickAdd()">✅ 確定新增並分拆項目</button>
+                            <input type="text" id="newColor" placeholder="3. 顏色 (例如: 黑色,白色,沙色)">
+                            <button class="btn-add" style="background:var(--gold); color:#0f172a; border:none; padding:15px; font-size:16px;" onclick="quickAdd()">✅ 確定新增並分拆項目</button>
                         </div>
                     </div>`;
 
             } else if (currentView === 'model') {
                 breadcrumbs.innerHTML = `<span class="nav-link" onclick="goToView('brand')">🏠 首頁</span> ➔ 📂 ${selectedBrand}`;
-                container.innerHTML = `<h2 style="color:#7f8c8d; font-size:15px; margin-bottom:15px;">👇 選擇鞋款：</h2>`;
+                container.innerHTML = `<h2 style="color:var(--text-muted); font-size:14px; margin-bottom:15px;">👇 選擇款式：</h2>`;
                 
                 Object.keys(appData.structure[selectedBrand]).forEach(model => {
                     container.innerHTML += `
@@ -295,7 +374,7 @@
                                 <span>👟 款式：${model}</span>
                                 <span class="arrow">➔</span>
                             </div>
-                            <button class="btn-delete-item" onclick="deleteItem('model', '${model}')" title="刪除此款式">🗑️</button>
+                            <button class="btn-delete-item" onclick="deleteItem('model', '${model}')">🗑️</button>
                         </div>`;
                 });
 
@@ -303,7 +382,7 @@
                 breadcrumbs.innerHTML = `
                     <span class="nav-link" onclick="goToView('brand')">🏠 首頁</span> ➔ 
                     <span class="nav-link" onclick="goToView('model')">${selectedBrand}</span> ➔ 🎨 顏色`;
-                container.innerHTML = `<h2 style="color:#7f8c8d; font-size:15px; margin-bottom:15px;">👇 選擇顏色：</h2>`;
+                container.innerHTML = `<h2 style="color:var(--text-muted); font-size:14px; margin-bottom:15px;">👇 選擇顏色：</h2>`;
                 
                 appData.structure[selectedBrand][selectedModel].forEach(color => {
                     container.innerHTML += `
@@ -312,7 +391,7 @@
                                 <span>🎨 顏色：${color}</span>
                                 <span class="arrow">➔</span>
                             </div>
-                            <button class="btn-delete-item" onclick="deleteItem('color', '${color}')" title="刪除此顏色">🗑️</button>
+                            <button class="btn-delete-item" onclick="deleteItem('color', '${color}')">🗑️</button>
                         </div>`;
                 });
 
@@ -323,9 +402,9 @@
                     <span class="nav-link" onclick="goToView('color')">${selectedModel}</span>`;
                 
                 container.innerHTML = `
-                    <div class="card" style="border-left: 6px solid var(--accent)">
-                        <h3 style="margin-bottom:4px; font-size:18px;">${selectedBrand} - ${selectedModel}</h3>
-                        <p style="margin:0; color:#666; font-size:14px;">顏色：<b style="color:black;">${selectedColor}</b></p>
+                    <div class="card" style="border-left: 4px solid var(--gold); background: #1e293b;">
+                        <h3 style="margin-bottom:4px; font-size:18px; color:var(--gold);">${selectedBrand} - ${selectedModel}</h3>
+                        <p style="margin:0; color:var(--text-main); font-size:15px;">顏色：<b>${selectedColor}</b></p>
                     </div>
                     <div class="card size-grid">
                 `;
@@ -340,10 +419,10 @@
 
                 container.innerHTML += `
                     </div>
-                    <div class="card" style="background:#f8f9fa; border:1px solid #e2e8f0;">
-                        <h4 style="margin-top:0; font-size:14px;">➕ 新增特殊鞋碼 (例如 童裝/w13)：</h4>
+                    <div class="card" style="background: rgba(30,41,59,0.3);">
+                        <h4 style="margin-top:0; font-size:14px; color:var(--text-muted);">➕ 新增特殊鞋碼 (例如 w13, 童裝)：</h4>
                         <div class="input-group">
-                            <input type="text" id="customSizeInput" placeholder="輸入碼數...">
+                            <input type="text" id="customSizeInput" placeholder="輸入特殊碼數...">
                             <button class="btn-add" onclick="addCustomSize('${customListKey}')">增加</button>
                         </div>
                     </div>
@@ -362,7 +441,7 @@
             }
 
             let barcodeBtnClass = barcodeBound ? "btn-bind-barcode bound" : "btn-bind-barcode";
-            let barcodeBtnText = barcodeBound ? `🏷️ 已綁碼` : "📷 綁條碼";
+            let barcodeBtnText = barcodeBound ? `🏷️ 已綁` : "📷 綁碼";
 
             target.innerHTML += `
                 <div class="size-row">
@@ -386,52 +465,35 @@
                 const searchInput = document.getElementById('globalSearchInput');
                 if(searchInput) searchInput.value = '';
             }
-            renderView(); 
-            window.scrollTo(0, 0); 
+            renderView(); window.scrollTo(0, 0); 
         }
 
-        // 核心修正：手動一鍵刪除功能
         function deleteItem(type, val) {
-            event.stopPropagation(); // 阻止觸發點擊進入下一頁
-            
+            event.stopPropagation(); 
             let confirmMsg = "";
-            if (type === 'brand') confirmMsg = `⚠️ 警告：你確定要刪除整個【${val}】品牌，包括入面所有款式同顏色紀錄？`;
-            if (type === 'model') confirmMsg = `確定要刪除款式【${val}】及入面所有顏色？`;
-            if (type === 'color') confirmMsg = `確定要刪除顏色【${val}】嗎？`;
+            if (type === 'brand') confirmMsg = `⚠️ 警告：確定刪除整個【${val}】品牌及所有型號顏色？`;
+            if (type === 'model') confirmMsg = `確定刪除款式【${val}】？`;
+            if (type === 'color') confirmMsg = `確定刪除顏色【${val}】嗎？`;
 
             if (!confirm(confirmMsg)) return;
 
-            if (type === 'brand') {
-                delete appData.structure[val];
-            } else if (type === 'model') {
-                delete appData.structure[selectedBrand][val];
-            } else if (type === 'color') {
-                appData.structure[selectedBrand][selectedModel] = appData.structure[selectedBrand][selectedModel].filter(c => c !== val);
-            }
+            if (type === 'brand') delete appData.structure[val];
+            else if (type === 'model') delete appData.structure[selectedBrand][val];
+            else if (type === 'color') appData.structure[selectedBrand][selectedModel] = appData.structure[selectedBrand][selectedModel].filter(c => c !== val);
 
-            saveToStorage();
-            renderView();
-            showToast("🗑️ 項目已成功刪除！", true);
+            saveToStorage(); renderView();
+            showToast("🗑️ 項目已成功移除！", true);
         }
 
-        // 核心修正：批量拆開顏色新增
         function quickAdd() {
             const b = document.getElementById('newBrand').value.trim();
             const m = document.getElementById('newModel').value.trim();
             const colorRaw = document.getElementById('newColor').value.trim();
 
-            if (!b || !m || !colorRaw) {
-                alert("請填寫所有欄位！");
-                return;
-            }
+            if (!b || !m || !colorRaw) { alert("請填寫所有欄位！"); return; }
 
-            // 使用正則表達式，支援中文逗號「，」、英文逗號「,」同斜線「/」進行分拆
             let colors = colorRaw.split(/[,，\/]/).map(c => c.trim()).filter(c => c !== "");
-
-            if (colors.length === 0) {
-                alert("請輸入有效的顏色！");
-                return;
-            }
+            if (colors.length === 0) { alert("請輸入有效的顏色！"); return; }
 
             if (!appData.structure[b]) appData.structure[b] = {};
             if (!appData.structure[b][m]) appData.structure[b][m] = [];
@@ -439,14 +501,12 @@
             let addCount = 0;
             colors.forEach(c => {
                 if (!appData.structure[b][m].includes(c)) {
-                    appData.structure[b][m].push(c);
-                    addCount++;
+                    appData.structure[b][m].push(c); addCount++;
                 }
             });
 
-            saveToStorage();
-            renderView();
-            alert(`✅ 成功為 ${b} - ${m} 新增了 ${addCount} 個獨立顏色！`);
+            saveToStorage(); renderView();
+            alert(`✅ 成功為 ${b} - ${m} 新增了 ${addCount} 個獨立顏色卡片！`);
             
             document.getElementById('newBrand').value = '';
             document.getElementById('newModel').value = '';
@@ -478,26 +538,18 @@
             if (!appData.customSizes[customListKey]) appData.customSizes[customListKey] = [];
             if (!appData.customSizes[customListKey].includes(newSize) && !DEFAULT_SIZES.includes(newSize)) {
                 appData.customSizes[customListKey].push(newSize);
-                saveToStorage();
-                renderView();
-            } else {
-                alert("呢個尺碼已經存在！");
-            }
+                saveToStorage(); renderView();
+            } else { alert("呢個尺碼已經存在！"); }
             input.value = "";
         }
 
         function openScanner(mode, targetKey = '') {
-            scanMode = mode;
-            bindTargetKey = targetKey;
+            scanMode = mode; bindTargetKey = targetKey;
             document.getElementById('scanner-modal').style.display = 'flex';
             html5QrcodeScanner = new Html5Qrcode("reader");
-            
             const config = { fps: 15, qrbox: { width: 260, height: 150 } };
             html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
-            .catch(err => {
-                alert("相機啟動失敗，請確保有畀網頁相機權限！");
-                closeScanner();
-            });
+            .catch(err => { alert("相機啟動失敗，請確保有畀相機權限！"); closeScanner(); });
         }
 
         function onScanSuccess(decodedText, decodedResult) {
@@ -506,27 +558,19 @@
             if (scanMode === 'bind') {
                 delete appData.barcodes[decodedText];
                 appData.barcodes[decodedText] = bindTargetKey;
-                saveToStorage();
-                closeScanner();
-                renderView();
-                showToast(`🏷️ 成功將條碼綁定！`, true);
-
+                saveToStorage(); closeScanner(); renderView();
+                showToast(`🏷️ 條碼綁定成功！`, true);
             } else if (scanMode === 'global') {
                 const matchedKey = appData.barcodes[decodedText];
                 if (matchedKey) {
                     let currentVal = appData.counts[matchedKey] || 0;
-                    currentVal += 1;
-                    appData.counts[matchedKey] = currentVal;
+                    currentVal += 1; appData.counts[matchedKey] = currentVal;
                     saveToStorage();
-                    
                     let parts = matchedKey.split('_'); 
-                    showToast(`➕ 成功加 1！[${parts[1]} - ${parts[2]} - ${parts[3]}碼]`, true);
-                    
+                    showToast(`➕ 掃碼加一：[${parts[1]} - ${parts[2]}碼]`, true);
                     const inputEl = document.getElementById(`input_${matchedKey}`);
                     if (inputEl) inputEl.value = currentVal;
-                } else {
-                    showToast(`⚠️ 條碼未綁定！請進入鞋款內綁定先`, false);
-                }
+                } else { showToast(`⚠️ 條碼未綁定！`, false); }
             }
         }
 
@@ -538,27 +582,20 @@
         }
 
         function resetCounts() {
-            if (confirm("⚠️ 警告：確定要將今日點嘅【所有數量】清空歸零？\n\n(鞋款同條碼紀錄會保留)")) {
-                appData.counts = {};
-                saveToStorage();
-                renderView();
-                alert("數量已全部歸零！");
+            if (confirm("⚠️ 警告：確定要將今日點算嘅【所有數量】清空歸零？")) {
+                appData.counts = {}; saveToStorage(); renderView();
+                alert("數據已全部歸零！");
             }
         }
 
         function uploadToCloud() {
-            if (!appData.scriptUrl) {
-                alert("❌ 請先喺最頂嘅設定欄位貼上 Google Apps Script 網址！");
-                return;
-            }
-
+            if (!appData.scriptUrl) { alert("❌ 請先貼上 Google Apps Script 網址並儲存！"); return; }
             let payloadData = [];
             Object.keys(appData.structure).forEach(b => {
                 Object.keys(appData.structure[b]).forEach(m => {
                     appData.structure[b][m].forEach(c => {
                         const customListKey = `${b}_${m}_${c}`;
                         const allSizes = [...DEFAULT_SIZES, ...(appData.customSizes[customListKey] || [])];
-                        
                         allSizes.forEach(s => {
                             const key = `${b}_${m}_${c}_${s}`;
                             const count = appData.counts[key] || 0;
@@ -567,22 +604,16 @@
                     });
                 });
             });
-
             if(!confirm("確定傳送上 Google Sheets 雲端？")) return;
-
             fetch(appData.scriptUrl, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payloadData)
-            }).then(() => {
-                alert("🚀 發送成功！請查看 Google Sheet 報表。");
-            }).catch(err => {
-                alert("❌ 上傳失敗，請檢查網址或網絡。");
-            });
+            }).then(() => { alert("🚀 雲端發送成功！請打開 Google Sheet 檢查。"); })
+            .catch(err => { alert("❌ 上傳失敗，請檢查網路。"); });
         }
 
         function exportCSV() {
-            let csvContent = "\uFEFF"; 
-            csvContent += "品牌,鞋款型號,顏色,尺碼,數量\n";
+            let csvContent = "\uFEFF品牌,鞋款型號,顏色,尺碼,數量\n";
             Object.keys(appData.structure).forEach(b => {
                 Object.keys(appData.structure[b]).forEach(m => {
                     appData.structure[b][m].forEach(c => {
@@ -600,10 +631,8 @@
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             const today = new Date().toISOString().slice(0,10);
-            link.setAttribute("download", `鞋鋪PRO盤點表_${today}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.setAttribute("download", `RUN_盤點表_${today}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
     </script>
 </body>
