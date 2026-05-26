@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鞋鋪超級無敵盤點系統 Pro (修復版)</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --bg: #f5f6fa;
+            --dark-gray: #7f8c8d;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: var(--bg);
+            color: #333;
+            padding-bottom: 100px;
+        }
+        h1, h2, h3, h4 { color: var(--primary); margin-top: 0; margin-bottom: 10px; }
+        
+        /* 導航列 */
+        .nav-bar {
+            background: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold;
+            display: flex; align-items: center; gap: 5px; font-size: 15px;
+        }
+        .nav-link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+        
+        /* 卡片與列表 */
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        
+        .list-item {
+            background: white; padding: 16px; border-radius: 10px; margin-bottom: 12px;
+            border: 1px solid #e2e8f0; font-size: 16px; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .list-item:active { background: #edf2f7; }
+        .arrow { color: #a0aec0; }
+        
+        /* 搜尋與掃描核心區 */
+        .search-container {
+            display: flex; gap: 8px; margin-bottom: 15px;
+        }
+        .search-input {
+            flex: 1; padding: 12px; border: 2px solid var(--primary); border-radius: 8px; font-size: 15px; box-sizing: border-box;
+        }
+        .btn-scan-main {
+            background-color: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 15px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 80px;
+        }
+
+        /* 相機掃描彈窗面版 */
+        #scanner-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000;
+            flex-direction: column; justify-content: center; padding: 20px;
+        }
+        #reader { background: white; border-radius: 12px; overflow: hidden; }
+        .btn-close-scanner { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 16px; font-weight: bold;}
+
+        /* 尺碼行樣式 */
+        .size-grid { display: flex; flex-direction: column; }
+        .size-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid #edf2f7;
+        }
+        .size-label { font-size: 16px; font-weight: bold; width: 60px; }
+        .counter-group { display: flex; align-items: center; gap: 5px; }
+        .btn-counter {
+            width: 44px; height: 44px; font-size: 22px; background: #e2e8f0; 
+            border: none; border-radius: 8px; cursor: pointer;
+        }
+        .btn-minus { color: var(--danger); }
+        .btn-plus { color: var(--success); }
+        .count-display {
+            width: 45px; text-align: center; font-size: 18px; font-weight: bold; 
+            border: none; background: transparent;
+        }
+        .btn-bind-barcode {
+            background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 8px; font-size: 11px; cursor: pointer; color: #475569;
+        }
+        .btn-bind-barcode.bound {
+            background: #dcfce7; border-color: #86efac; color: #166534; font-weight: bold;
+        }
+        
+        /* 輸入框組 */
+        .input-group { display: flex; gap: 10px; margin-top: 10px; }
+        input[type="text"], input[type="number"] {
+            flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px;
+        }
+        .btn-add { background: var(--primary); color: white; padding: 12px 15px; border-radius: 8px; border: none; font-weight: bold;}
+        .admin-box { background: #e8f4f8; border: 2px dashed #3498db; margin-top: 25px;}
+
+        /* 雲端與通知橫幅 */
+        .cloud-banner { background: #e3f2fd; border: 1px solid #90caf9; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; }
+        .scan-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 1100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; text-align: center; width: 80%;
+        }
+
+        /* 底部操作欄 */
+        .bottom-actions {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            padding: 12px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; gap: 8px; z-index: 999;
+        }
+        .btn-footer { flex: 1; padding: 12px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; color: white;}
+        .btn-green { background-color: var(--success); }
+        .btn-blue { background-color: #3498db; }
+        .btn-red { background-color: var(--danger); }
+        
+        .search-result-title { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="scan-toast" id="scanToast"></div>
+
+    <div class="cloud-banner">
+        <strong>🌐 Google Sheets 雲端連線：</strong>
+        <div class="input-group">
+            <input type="text" id="scriptUrlInput" placeholder="貼上 Google App Script 網址">
+            <button class="btn-add" style="padding: 10px;" onclick="saveScriptUrl()">儲存</button>
+        </div>
+    </div>
+
+    <div class="search-container" id="globalSearchArea">
+        <input type="text" class="search-input" id="globalSearchInput" placeholder="🔍 搜尋鞋款 (如: Blush)..." oninput="handleSearch(this.value)">
+        <button class="btn-scan-main" onclick="openScanner('global')">📷 掃碼</button>
+    </div>
+
+    <div class="nav-bar" id="breadcrumbs">
+        <span class="nav-link" onclick="goToView('brand')">🏠 返回首頁</span>
+    </div>
+
+    <div id="mainContainer"></div>
+
+    <div id="scanner-modal">
+        <div id="reader"></div>
+        <button class="btn-close-scanner" onclick="closeScanner()">❌ 關閉相機</button>
+    </div>
+
+    <div class="bottom-actions">
+        <button class="btn-footer btn-blue" onclick="uploadToCloud()">☁️ 傳上雲端</button>
+        <button class="btn-footer btn-green" onclick="exportCSV()">📥 匯出 Excel</button>
+        <button class="btn-footer btn-red" onclick="resetCounts()">🗑️ 清空數量</button>
+    </div>
+
+    <script>
+        const DEFAULT_SIZES = [
+            "w5", "w5.5", "w6", "w6.5", "w7", "w7.5", "w8", "w8.5", "w9",
+            "m7", "m7.5", "m8", "m8.5", "m9", "m9.5", "m10", "m10.5", "m11", "m11.5", "m12"
+        ];
+
+        // 確保呢 10 款鞋絕對會喺度
+        const INITIAL_DATA = {
+            "OOFOS": {
+                "OOaHH": ["Blush", "Olive", "Dune", "Black"],
+                "OOaHH SPORT": ["Matrix Black", "Matte Black", "Tactical Green"],
+                "OOaHH SPORT FLEX": ["Slate", "White", "Matte Black"]
+            }
+        };
+
+        let appData = { 
+            structure: JSON.parse(JSON.stringify(INITIAL_DATA)), 
+            customSizes: {}, 
+            counts: {}, 
+            barcodes: {},
+            scriptUrl: "" 
+        };
+        
+        let currentView = 'brand'; 
+        let selectedBrand = '';
+        let selectedModel = '';
+        let selectedColor = '';
+        
+        let html5QrcodeScanner = null;
+        let scanMode = 'global'; 
+        let bindTargetKey = ''; 
+
+        window.onload = function() {
+            // 用全新 Key (v7)，強制清除可能壞咗嘅舊快取
+            let saved = localStorage.getItem('shoe_v7_final_fixed');
+            if (saved) {
+                let parsed = JSON.parse(saved);
+                appData.counts = parsed.counts || {};
+                appData.customSizes = parsed.customSizes || {};
+                appData.barcodes = parsed.barcodes || {};
+                appData.scriptUrl = parsed.scriptUrl || "";
+                
+                // 將用家自己加嘅新鞋，同預設嘅 OOFOS 合併，確保舊鞋唔會消失
+                if (parsed.structure && Object.keys(parsed.structure).length > 0) {
+                    for (let b in parsed.structure) {
+                        if (!appData.structure[b]) appData.structure[b] = {};
+                        for (let m in parsed.structure[b]) {
+                            if (!appData.structure[b][m]) appData.structure[b][m] = [];
+                            parsed.structure[b][m].forEach(c => {
+                                if (!appData.structure[b][m].includes(c)) {
+                                    appData.structure[b][m].push(c);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+            if (appData.scriptUrl) {
+                document.getElementById('scriptUrlInput').value = appData.scriptUrl;
+            }
+            renderView();
+        };
+
+        function saveToStorage() {
+            localStorage.setItem('shoe_v7_final_fixed', JSON.stringify(appData));
+        }
+
+        function saveScriptUrl() {
+            const url = document.getElementById('scriptUrlInput').value.trim();
+            appData.scriptUrl = url;
+            saveToStorage();
+            alert("✅ 雲端連線網址已成功儲存！");
+        }
+
+        function showToast(msg, isSuccess=true) {
+            const toast = document.getElementById('scanToast');
+            toast.innerText = msg;
+            toast.style.background = isSuccess ? "#2ecc71" : "#e74c3c";
+            toast.style.display = "block";
+            setTimeout(() => { toast.style.display = "none"; }, 3500);
+        }
+
+        function handleSearch(query) {
+            query = query.trim().toLowerCase();
+            if (!query) {
+                currentView = 'brand';
+                renderView();
+                return;
+            }
+
+            currentView = 'search_results';
+            const container = document.getElementById('mainContainer');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            breadcrumbs.innerHTML = `<span class="nav-link" onclick="goToView('brand')">🏠 取消搜尋並返回首頁</span>`;
+            container.innerHTML = `<div class="search-result-title">🔎 搜尋結果 (點擊直達點貨)：</div>`;
+
+            let hasResult = false;
+
+            Object.keys(appData.structure).forEach(b => {
+                Object.keys(appData.structure[b]).forEach(m => {
+                    appData.structure[b][m].forEach(c => {
+                        let fullName = `${b} ${m} ${c}`.toLowerCase();
+                        if (fullName.includes(query)) {
+                            hasResult = true;
+                            container.innerHTML += `
+                                <div class="list-item" onclick="jumpToSizeView('${b}', '${m}', '${c}')">
+                                    <span>👟 ${b} - ${m} (<span style="color:var(--accent);">${c}</span>)</span>
+                                    <span class="arrow">➔</span>
+                                </div>`;
+                        }
+                    });
+                });
+            });
+
+            if (!hasResult) {
+                container.innerHTML = `<div style="text-align:center; color:gray; padding:30px;">❌ 搵唔到鞋款。請檢查字眼。</div>`;
+            }
+        }
+
+        function jumpToSizeView(b, m, c) {
+            selectedBrand = b;
+            selectedModel = m;
+            selectedColor = c;
+            document.getElementById('globalSearchInput').value = ''; 
+            goToView('size');
+        }
+
+        function renderView() {
+            const container = document.getElementById('mainContainer');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            container.innerHTML = "";
+            
+            // 只有喺正常揀款畫面先顯示搜尋列
+            if (currentView === 'search_results') {
+                document.getElementById('globalSearchArea').style.display = 'none';
+            } else {
+                document.getElementById('globalSearchArea').style.display = 'flex';
+            }
+
+            if (currentView === 'brand') {
+                breadcrumbs.innerHTML = `🏠 品牌首頁`;
+                container.innerHTML = `<h2 style="color:#7f8c8d; font-size:15px; margin-bottom:15px;">👇 點擊品牌，或喺上方搜尋：</h2>`;
+                
+                Object.keys(appData.structure).forEach(brand => {
+                    container.innerHTML += `
+                        <div class="list-item" onclick="selectBrand('${brand}')">
+                            <span>🏢 品牌：${brand}</span><span class="arrow">➔</span>
+                        </div>`;
+                });
+
+                // 重點修復：非常顯眼的「新增」區塊
+                container.innerHTML += `
+                    <div class="card admin-box">
+                        <h3 style="font-size:16px; color:#2980b9;">➕ 手動加入全新鞋款</h3>
+                        <p style="font-size:13px; color:#666; margin-top:0;">如果上面無你想點嘅款，喺度自己加：</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <input type="text" id="newBrand" placeholder="1. 品牌 (例如: Nike)">
+                            <input type="text" id="newModel" placeholder="2. 款式 (例如: Air Force 1)">
+                            <input type="text" id="newColor" placeholder="3. 顏色 (例如: 全白)">
+                            <button class="btn-add" style="background:#3498db; padding:15px; font-size:16px;" onclick="quickAdd()">✅ 確定新增並永久記憶</button>
+                        </div>
+                    </div>`;
+
+            } else if (currentView === 'model') {
+                breadcrumbs.innerHTML = `<span class="nav-link" onclick="goToView('brand')">🏠 首頁</span> ➔ 📂 ${selectedBrand}`;
+                
+                Object.keys(appData.structure[selectedBrand]).forEach(model => {
+                    container.innerHTML += `
+                        <div class="list-item" onclick="selectModel('${model}')">
+                            <span>👟 ${model}</span><span class="arrow">➔</span>
+                        </div>`;
+                });
+
+            } else if (currentView === 'color') {
+                breadcrumbs.innerHTML = `
+                    <span class="nav-link" onclick="goToView('brand')">🏠 首頁</span> ➔ 
+                    <span class="nav-link" onclick="goToView('model')">${selectedBrand}</span> ➔ 🎨 顏色`;
+                
+                appData.structure[selectedBrand][selectedModel].forEach(color => {
+                    container.innerHTML += `
+                        <div class="list-item" onclick="selectColor('${color}')">
+                            <span>🎨 ${color}</span><span class="arrow">➔</span>
+                        </div>`;
+                });
+
+            } else if (currentView === 'size') {
+                breadcrumbs.innerHTML = `
+                    <span class="nav-link" onclick="goToView('brand')">🏠 首頁</span> ➔ 
+                    <span class="nav-link" onclick="goToView('model')">${selectedBrand}</span> ➔ 
+                    <span class="nav-link" onclick="goToView('color')">${selectedModel}</span>`;
+                
+                container.innerHTML = `
+                    <div class="card" style="border-left: 6px solid var(--accent)">
+                        <h3 style="margin-bottom:4px; font-size:18px;">${selectedBrand} - ${selectedModel}</h3>
+                        <p style="margin:0; color:#666; font-size:14px;">顏色：<b style="color:black;">${selectedColor}</b></p>
+                    </div>
+                    <div class="card size-grid">
+                `;
+
+                const sizeKeyBase = `${selectedBrand}_${selectedModel}_${selectedColor}_`;
+
+                DEFAULT_SIZES.forEach(size => { renderSizeRow(container, sizeKeyBase, size); });
+
+                const customListKey = `${selectedBrand}_${selectedModel}_${selectedColor}`;
+                const myCustomSizes = appData.customSizes[customListKey] || [];
+                myCustomSizes.forEach(size => { renderSizeRow(container, sizeKeyBase, size); });
+
+                container.innerHTML += `
+                    </div>
+                    <div class="card" style="background:#f8f9fa; border:1px solid #e2e8f0;">
+                        <h4 style="margin-top:0; font-size:14px;">➕ 新增特殊鞋碼 (例如 童裝/w13)：</h4>
+                        <div class="input-group">
+                            <input type="text" id="customSizeInput" placeholder="輸入碼數...">
+                            <button class="btn-add" onclick="addCustomSize('${customListKey}')">增加</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderSizeRow(container, keyBase, size) {
+            const fullKey = keyBase + size;
+            const currentVal = appData.counts[fullKey] || 0;
+            const target = container.querySelector('.size-grid') || container;
+            
+            let barcodeBound = false;
+            for (let code in appData.barcodes) {
+                if (appData.barcodes[code] === fullKey) { barcodeBound = true; break; }
+            }
+
+            let barcodeBtnClass = barcodeBound ? "btn-bind-barcode bound" : "btn-bind-barcode";
+            let barcodeBtnText = barcodeBound ? `🏷️ 已綁碼` : "📷 綁條碼";
+
+            target.innerHTML += `
+                <div class="size-row">
+                    <div class="size-label">${size}</div>
+                    <button class="${barcodeBtnClass}" onclick="openScanner('bind', '${fullKey}')">${barcodeBtnText}</button>
+                    <div class="counter-group">
+                        <button class="btn-counter btn-minus" onclick="updateCount('${fullKey}', -1)">-</button>
+                        <input type="number" class="count-display" id="input_${fullKey}" value="${currentVal}" onchange="directInput('${fullKey}', this.value)">
+                        <button class="btn-counter btn-plus" onclick="updateCount('${fullKey}', 1)">+</button>
+                    </div>
+                </div>`;
+        }
+
+        function selectBrand(b) { selectedBrand = b; currentView = 'model'; renderView(); window.scrollTo(0, 0); }
+        function selectModel(m) { selectedModel = m; currentView = 'color'; renderView(); window.scrollTo(0, 0); }
+        function selectColor(c) { selectedColor = c; currentView = 'size'; renderView(); window.scrollTo(0, 0); }
+        
+        function goToView(view) { 
+            currentView = view; 
+            if(view === 'brand') {
+                // 如果撳首頁，確保清空搜尋欄
+                const searchInput = document.getElementById('globalSearchInput');
+                if(searchInput) searchInput.value = '';
+            }
+            renderView(); 
+            window.scrollTo(0, 0); 
+        }
+
+        function updateCount(key, amount) {
+            let val = parseInt(appData.counts[key]) || 0;
+            val += amount;
+            if (val < 0) val = 0;
+            appData.counts[key] = val;
+            const input = document.getElementById(`input_${key}`);
+            if(input) input.value = val;
+            saveToStorage();
+        }
+
+        function directInput(key, value) {
+            let val = parseInt(value) || 0;
+            if (val < 0) val = 0;
+            appData.counts[key] = val;
+            saveToStorage();
+        }
+
+        function addCustomSize(customListKey) {
+            const input = document.getElementById('customSizeInput');
+            const newSize = input.value.trim();
+            if (!newSize) return;
+
+            if (!appData.customSizes[customListKey]) appData.customSizes[customListKey] = [];
+            if (!appData.customSizes[customListKey].includes(newSize) && !DEFAULT_SIZES.includes(newSize)) {
+                appData.customSizes[customListKey].push(newSize);
+                saveToStorage();
+                renderView();
+            } else {
+                alert("呢個尺碼已經存在！");
+            }
+            input.value = "";
+        }
+
+        function quickAdd() {
+            const b = document.getElementById('newBrand').value.trim();
+            const m = document.getElementById('newModel').value.trim();
+            const c = document.getElementById('newColor').value.trim();
+
+            if (!b || !m || !c) {
+                alert("請填寫所有欄位！");
+                return;
+            }
+
+            if (!appData.structure[b]) appData.structure[b] = {};
+            if (!appData.structure[b][m]) appData.structure[b][m] = [];
+            if (!appData.structure[b][m].includes(c)) appData.structure[b][m].push(c);
+
+            saveToStorage();
+            renderView();
+            alert(`✅ 成功新增：${b} - ${m} (${c})`);
+            
+            // 清空輸入框
+            document.getElementById('newBrand').value = '';
+            document.getElementById('newModel').value = '';
+            document.getElementById('newColor').value = '';
+        }
+
+        function openScanner(mode, targetKey = '') {
+            scanMode = mode;
+            bindTargetKey = targetKey;
+            document.getElementById('scanner-modal').style.display = 'flex';
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            const config = { fps: 15, qrbox: { width: 260, height: 150 } };
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+            .catch(err => {
+                alert("相機啟動失敗，請確保有畀網頁相機權限！");
+                closeScanner();
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            if (scanMode === 'bind') {
+                delete appData.barcodes[decodedText];
+                appData.barcodes[decodedText] = bindTargetKey;
+                saveToStorage();
+                closeScanner();
+                renderView();
+                showToast(`🏷️ 成功將條碼綁定！`, true);
+
+            } else if (scanMode === 'global') {
+                const matchedKey = appData.barcodes[decodedText];
+                if (matchedKey) {
+                    let currentVal = appData.counts[matchedKey] || 0;
+                    currentVal += 1;
+                    appData.counts[matchedKey] = currentVal;
+                    saveToStorage();
+                    
+                    let parts = matchedKey.split('_'); 
+                    showToast(`➕ 成功加 1！[${parts[1]} - ${parts[2]} - ${parts[3]}碼]`, true);
+                    
+                    const inputEl = document.getElementById(`input_${matchedKey}`);
+                    if (inputEl) inputEl.value = currentVal;
+                } else {
+                    showToast(`⚠️ 條碼未綁定！請進入鞋款內綁定先`, false);
+                }
+            }
+        }
+
+        function closeScanner() {
+            document.getElementById('scanner-modal').style.display = 'none';
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); }).catch(e => console.log(e));
+            }
+        }
+
+        function resetCounts() {
+            if (confirm("⚠️ 警告：確定要將今日點嘅【所有數量】清空歸零？\n\n(鞋款同條碼紀錄會保留)")) {
+                appData.counts = {};
+                saveToStorage();
+                renderView();
+                alert("數量已全部歸零！");
+            }
+        }
+
+        function uploadToCloud() {
+            if (!appData.scriptUrl) {
+                alert("❌ 請先喺最頂嘅設定欄位貼上 Google Apps Script 網址！");
+                return;
+            }
+
+            let payloadData = [];
+            Object.keys(appData.structure).forEach(b => {
+                Object.keys(appData.structure[b]).forEach(m => {
+                    appData.structure[b][m].forEach(c => {
+                        const customListKey = `${b}_${m}_${c}`;
+                        const allSizes = [...DEFAULT_SIZES, ...(appData.customSizes[customListKey] || [])];
+                        
+                        allSizes.forEach(s => {
+                            const key = `${b}_${m}_${c}_${s}`;
+                            const count = appData.counts[key] || 0;
+                            payloadData.push({ brand: b, model: m, color: c, size: s, count: count });
+                        });
+                    });
+                });
+            });
+
+            if(!confirm("確定傳送上 Google Sheets 雲端？")) return;
+
+            fetch(appData.scriptUrl, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadData)
+            }).then(() => {
+                alert("🚀 發送成功！請查看 Google Sheet 報表。");
+            }).catch(err => {
+                alert("❌ 上傳失敗，請檢查網址或網絡。");
+            });
+        }
+
+        function exportCSV() {
+            let csvContent = "\uFEFF"; 
+            csvContent += "品牌,鞋款型號,顏色,尺碼,數量\n";
+            Object.keys(appData.structure).forEach(b => {
+                Object.keys(appData.structure[b]).forEach(m => {
+                    appData.structure[b][m].forEach(c => {
+                        const customListKey = `${b}_${m}_${c}`;
+                        const allSizes = [...DEFAULT_SIZES, ...(appData.customSizes[customListKey] || [])];
+                        allSizes.forEach(s => {
+                            const key = `${b}_${m}_${c}_${s}`;
+                            const count = appData.counts[key] || 0;
+                            csvContent += `"${b}","${m}","${c}","${s}",${count}\n`;
+                        });
+                    });
+                });
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            const today = new Date().toISOString().slice(0,10);
+            link.setAttribute("download", `鞋鋪PRO盤點表_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
